@@ -1,23 +1,22 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
+// Lidhja me databazën MySQL përmes PDO
 
-header('Content-Type: application/json; charset=utf-8');
+function getDB(): PDO
+{
+    static $pdo = null;              // lidhja krijohet vetëm një herë
 
-try {
-    $pdo   = getDB();
-    $count = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    if ($pdo === null) {
+        $host = 'localhost';
+        $db   = 'restaurant_db';
+        $user = 'root';              // përdoruesi i parazgjedhur në XAMPP
+        $pass = '';                  // fjalëkalimi në XAMPP është bosh
 
-    echo json_encode([
-        'success'     => true,
-        'message'     => 'Lidhja me databazën punon',
-        'users_count' => (int) $count,
-    ], JSON_UNESCAPED_UNICODE);
-} catch (PDOException $e) {
-    error_log($e->getMessage());     // gabimi i vërtetë shkruhet në log
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error'   => 'DB_CONNECTION_FAILED',
-        'message' => 'Nuk mund të lidhem me databazën.',
-    ], JSON_UNESCAPED_UNICODE);
+        $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+    }
+
+    return $pdo;
 }
