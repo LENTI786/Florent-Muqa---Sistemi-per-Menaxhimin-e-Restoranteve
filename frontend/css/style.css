@@ -1,7 +1,222 @@
-body {
-  min-height: 100vh;
+
+/* ==============================
+   NGJYRAT KRYESORE
+============================== */
+
+:root {
+    --primary: #315efb;
+    --primary-dark: #2448ce;
+    --dark: #17233b;
+    --background: #f1f4f9;
+    --white: #ffffff;
+    --text: #202b3c;
+    --muted: #788397;
+    --border: #e2e8f0;
 }
 
-.card {
-  border-radius: 0.75rem;
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--background);
+    color: var(--text);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* ==============================
+   LOGIN PAGE
+============================== */
+
+body:has(#login-form) {
+    background:
+        radial-gradient(circle at 15% 20%, #385b9d 0, transparent 35%),
+        linear-gradient(135deg, #101b32, #263e67);
+}
+
+body:has(#login-form) .card {
+    border: none;
+    border-radius: 22px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+body:has(#login-form) .card-body {
+    padding: 2.5rem !important;
+}
+
+body:has(#login-form) h1 {
+    color: var(--dark);
+    font-size: 1.65rem;
+    font-weight: 750;
+    letter-spacing: -0.5px;
+}
+
+body:has(#login-form) .text-muted {
+    color: var(--muted) !important;
+}
+
+body:has(#login-form) .form-label {
+    font-weight: 650;
+    color: #344054;
+}
+
+body:has(#login-form) .form-control {
+    min-height: 48px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 11px 14px;
+}
+
+body:has(#login-form) .btn-primary {
+    min-height: 48px;
+    margin-top: 8px;
+}
+
+/* ==============================
+   NAVBAR
+============================== */
+
+.navbar {
+    min-height: 72px;
+    background: linear-gradient(110deg, #111c32, #263e67) !important;
+    box-shadow: 0 4px 18px rgba(15, 30, 55, 0.15);
+}
+
+.navbar-brand {
+    font-size: 1.35rem;
+    font-weight: 750;
+    letter-spacing: 0.3px;
+}
+
+.navbar .nav-link {
+    color: #dce5f5 !important;
+    padding: 10px 15px !important;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.navbar .nav-link.active {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.navbar-text {
+    color: #dce5f5 !important;
+    font-weight: 500;
+}
+
+/* ==============================
+   MENU PAGE
+============================== */
+
+main.container {
+    max-width: 1200px;
+    padding-top: 40px !important;
+    padding-bottom: 50px !important;
+}
+
+main > h1 {
+    font-size: 2rem;
+    font-weight: 750;
+    letter-spacing: -0.7px;
+    margin-bottom: 28px !important;
+}
+
+/* Kategoritë e produkteve */
+
+#menu-content h2 {
+    font-size: 1.2rem;
+    font-weight: 750;
+    color: var(--dark);
+    padding-bottom: 12px;
+    margin-bottom: 18px !important;
+    border-bottom: 2px solid var(--border);
+}
+
+/* Kartelat e produkteve */
+
+#menu-content .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(30, 45, 70, 0.04);
+    min-height: 105px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#menu-content .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(30, 45, 70, 0.12);
+}
+
+#menu-content .card-body {
+    padding: 22px 20px !important;
+}
+
+#menu-content h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+#menu-content .fw-bold {
+    color: var(--primary);
+    font-size: 1.05rem;
+    white-space: nowrap;
+}
+
+/* ==============================
+   INPUTS AND BUTTONS
+============================== */
+
+.form-control {
+    border-radius: 9px;
+    border: 1px solid var(--border);
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(49, 94, 251, 0.13);
+}
+
+.btn {
+    border-radius: 9px;
+    font-weight: 650;
+    transition: 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* ==============================
+   RESPONSIVE DESIGN
+============================== */
+
+@media (max-width: 576px) {
+    body:has(#login-form) .card-body {
+        padding: 1.5rem !important;
+    }
+
+    main.container {
+        padding: 25px 18px !important;
+    }
+
+    main > h1 {
+        font-size: 1.65rem;
+    }
+
+    .navbar {
+        padding: 12px 0;
+    }
 }
