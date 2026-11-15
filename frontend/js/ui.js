@@ -56,6 +56,12 @@ function renderNavbar(user, active) {
         label: 'Porositë',
         href: 'orders.html',
         roles: ['ADMIN', 'WAITER', 'KITCHEN']
+    },
+    {
+    id: 'payments',
+    label: 'Pagesat',
+    href: 'payments.html',
+    roles: ['ADMIN', 'WAITER']
     }
 ];
 

@@ -291,3 +291,24 @@ main > h1 {
         min-width: 140px;
     }
 }
+
+
+/* MENAXHIMI I PAGESAVE */
+
+.payment-card {
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    transition: box-shadow 0.2s ease;
+}
+
+.payment-card:hover {
+    box-shadow: 0 8px 22px rgba(30, 45, 70, 0.08);
+}
+
+.payment-card .fs-5 {
+    color: var(--primary);
+}
+
+#payable-count {
+    color: var(--primary);
+}
