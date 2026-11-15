@@ -252,3 +252,42 @@ main > h1 {
     border-radius: 20px;
     font-size: 0.8rem;
 }
+
+
+/* MENAXHIMI I POROSIVE */
+
+.order-card {
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    transition: box-shadow 0.2s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 8px 22px rgba(30, 45, 70, 0.08);
+}
+
+.order-total {
+    background: #f0f4ff;
+    border: 1px solid #dce5ff;
+}
+
+.order-item-row {
+    background: #f8faff;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.order-details {
+    background: #f8faff;
+    border-radius: 10px;
+}
+
+#status-filter {
+    min-width: 175px;
+}
+
+@media (max-width: 576px) {
+    #status-filter {
+        min-width: 140px;
+    }
+}

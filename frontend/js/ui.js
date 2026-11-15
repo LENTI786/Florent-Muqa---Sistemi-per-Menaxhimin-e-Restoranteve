@@ -50,6 +50,12 @@ function renderNavbar(user, active) {
         label: 'Tavolinat',
         href: 'tables.html',
         roles: ['ADMIN', 'WAITER', 'KITCHEN']
+    },
+    {
+        id: 'orders',
+        label: 'Porositë',
+        href: 'orders.html',
+        roles: ['ADMIN', 'WAITER', 'KITCHEN']
     }
 ];
 
