@@ -40,6 +40,12 @@ function renderNavbar(user, active) {
   const roleNames = { ADMIN: 'Administrator', WAITER: 'Kamarier', KITCHEN: 'Kuzhinier' };
   const links = [
     {
+    id: 'dashboard',
+    label: 'Dashboard',
+    href: 'dashboard.html',
+    roles: ['ADMIN', 'WAITER', 'KITCHEN']
+    },
+    {
         id: 'menu',
         label: 'Menuja',
         href: 'menu.html',

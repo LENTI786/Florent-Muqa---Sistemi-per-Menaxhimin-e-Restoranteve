@@ -4,7 +4,12 @@ const LOGIN_PAGE = 'index.html';
 
 // Faqja ku shkon çdo rol pas hyrjes (do ta ndryshojmë kur të kemi faqet e tjera)
 function homeFor(role) {
-  const pages = { ADMIN: 'menu.html', WAITER: 'menu.html', KITCHEN: 'menu.html' };
+  const pages = {
+    ADMIN: 'dashboard.html',
+    WAITER: 'dashboard.html',
+    KITCHEN: 'dashboard.html'
+  };
+
   return pages[role] || LOGIN_PAGE;
 }
 

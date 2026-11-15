@@ -312,3 +312,43 @@ main > h1 {
 #payable-count {
     color: var(--primary);
 }
+
+
+/* ==============================
+   DASHBOARD
+============================== */
+
+.dashboard-stat-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(30, 45, 70, 0.09) !important;
+}
+
+.dashboard-stat-card h2 {
+    font-size: 2rem;
+}
+
+#recent-orders .table th {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 14px;
+}
+
+#recent-orders .table td {
+    padding: 14px;
+}
+
+#recent-orders .table tbody tr:hover {
+    background-color: #f8faff;
+}
+
+#refresh-dashboard {
+    min-height: 42px;
+}
