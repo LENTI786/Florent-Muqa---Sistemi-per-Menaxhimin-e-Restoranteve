@@ -39,8 +39,19 @@ function setLoading(button, isLoading, text) {
 function renderNavbar(user, active) {
   const roleNames = { ADMIN: 'Administrator', WAITER: 'Kamarier', KITCHEN: 'Kuzhinier' };
   const links = [
-    { id: 'menu', label: 'Menuja', href: 'menu.html', roles: ['ADMIN', 'WAITER', 'KITCHEN'] },
-  ];
+    {
+        id: 'menu',
+        label: 'Menuja',
+        href: 'menu.html',
+        roles: ['ADMIN', 'WAITER', 'KITCHEN']
+    },
+    {
+        id: 'tables',
+        label: 'Tavolinat',
+        href: 'tables.html',
+        roles: ['ADMIN', 'WAITER', 'KITCHEN']
+    }
+];
 
   const items = links
     .filter(link => link.roles.includes(user.role))

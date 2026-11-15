@@ -220,3 +220,35 @@ main > h1 {
         padding: 12px 0;
     }
 }
+
+
+/* MENAXHIMI I TAVOLINAVE */
+
+#table-form-card,
+#tables-content .card {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+}
+
+#tables-content .table th {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 16px;
+    white-space: nowrap;
+}
+
+#tables-content .table td {
+    padding: 16px;
+    vertical-align: middle;
+}
+
+#tables-content .table tbody tr:hover {
+    background-color: #f8faff;
+}
+
+#tables-content .badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}

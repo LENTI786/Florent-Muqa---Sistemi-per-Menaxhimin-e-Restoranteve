@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tavolinat | Sistemi i Restorantit</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <div id="navbar"></div>
+
+    <main class="container py-4">
+
+        <div class="mb-4">
+            <h1 class="h3 fw-bold">Menaxhimi i tavolinave</h1>
+            <p class="text-muted">
+                Shiko dhe menaxho tavolinat e restorantit.
+            </p>
+        </div>
+
+        <div id="alert"></div>
+
+        <!-- Forma për administratorin -->
+        <div id="table-form-card" class="card shadow-sm mb-4 d-none">
+            <div class="card-body">
+
+                <h2 id="form-title" class="h5 fw-bold mb-3">
+                    Shto tavolinë të re
+                </h2>
+
+                <form id="table-form">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label for="table-number" class="form-label">
+                                Numri i tavolinës
+                            </label>
+
+                            <input
+                                type="number"
+                                id="table-number"
+                                class="form-control"
+                                min="1"
+                                max="999"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="table-capacity" class="form-label">
+                                Kapaciteti
+                            </label>
+
+                            <input
+                                type="number"
+                                id="table-capacity"
+                                class="form-control"
+                                min="1"
+                                max="50"
+                                required
+                            >
+                        </div>
+
+                        <div id="table-status-field" class="col-md-4 d-none">
+                            <label for="table-status" class="form-label">
+                                Statusi
+                            </label>
+
+                            <select id="table-status" class="form-select">
+                                <option value="FREE">E lirë</option>
+                                <option value="OCCUPIED">E zënë</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-4">
+                        <button
+                            type="submit"
+                            id="save-table-btn"
+                            class="btn btn-primary"
+                        >
+                            Shto tavolinën
+                        </button>
+
+                        <button
+                            type="button"
+                            id="cancel-edit"
+                            class="btn btn-secondary d-none"
+                        >
+                            Anulo
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- Ngarkimi -->
+        <div id="tables-loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Duke ngarkuar tavolinat...</p>
+        </div>
+
+        <!-- Lista e tavolinave -->
+        <div id="tables-content"></div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tables.js"></script>
+
+</body>
+</html>
