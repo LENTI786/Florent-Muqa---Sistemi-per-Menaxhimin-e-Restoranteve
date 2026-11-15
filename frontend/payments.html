@@ -24,14 +24,14 @@
 
         <div class="mb-4">
             <h1 class="h3 fw-bold">Menaxhimi i pagesave</h1>
-
             <p class="text-muted">
-                Regjistro pagesat për porositë e shërbyera.
+                Regjistro dhe menaxho pagesat e porosive të restorantit.
             </p>
         </div>
 
         <div id="alert"></div>
 
+        <!-- Porositë në pritje të pagesës -->
         <div class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
@@ -58,7 +58,195 @@
 
         <div id="payments-content"></div>
 
+        <hr class="my-5">
+
+        <!-- Statistikat për administratorin -->
+        <section id="payment-stats-section" class="d-none mb-4">
+
+            <h2 class="h5 fw-bold mb-3">Statistikat e të hyrave</h2>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Të hyrat ditore</p>
+                            <h3 id="daily-revenue" class="h4 fw-bold mb-0">
+                                0.00 €
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Të hyrat mujore</p>
+                            <h3 id="monthly-revenue" class="h4 fw-bold mb-0">
+                                0.00 €
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Pagesa aktive gjithsej</p>
+                            <h3 id="total-payments" class="h4 fw-bold mb-0">
+                                0
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Historiku i pagesave -->
+        <section>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">Historiku i pagesave</h2>
+                    <p class="text-muted small mb-0">
+                        Lista e pagesave të regjistruara në sistem.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Filtrat -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+
+                    <form id="payment-filters" class="row g-3">
+
+                        <div class="col-md-3">
+                            <label for="filter-date-from" class="form-label">
+                                Nga data
+                            </label>
+                            <input
+                                type="date"
+                                id="filter-date-from"
+                                class="form-control"
+                            >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="filter-date-to" class="form-label">
+                                Deri më
+                            </label>
+                            <input
+                                type="date"
+                                id="filter-date-to"
+                                class="form-control"
+                            >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="filter-order-id" class="form-label">
+                                ID e porosisë
+                            </label>
+                            <input
+                                type="number"
+                                id="filter-order-id"
+                                class="form-control"
+                                min="1"
+                                placeholder="P.sh. 7"
+                            >
+                        </div>
+
+                        <div class="col-md-3 admin-filter d-none">
+                            <label for="filter-waiter-id" class="form-label">
+                                ID e kamarierit
+                            </label>
+                            <input
+                                type="number"
+                                id="filter-waiter-id"
+                                class="form-control"
+                                min="1"
+                                placeholder="ID e kamarierit"
+                            >
+                        </div>
+
+                        <div class="col-md-3 admin-filter d-none">
+                            <label for="filter-status" class="form-label">
+                                Statusi
+                            </label>
+                            <select id="filter-status" class="form-select">
+                                <option value="">Të gjitha</option>
+                                <option value="PAID">E paguar</option>
+                                <option value="CANCELLED">E anuluar</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                Filtro
+                            </button>
+
+                            <button
+                                type="button"
+                                id="reset-payment-filters"
+                                class="btn btn-outline-secondary"
+                            >
+                                Pastro filtrat
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            <div id="history-loading" class="text-center py-4 d-none">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2">Duke ngarkuar historikun...</p>
+            </div>
+
+            <div id="payment-history-content"></div>
+
+        </section>
+
     </main>
+
+    <!-- Modal për detajet e pagesës -->
+    <div
+        class="modal fade"
+        id="payment-details-modal"
+        tabindex="-1"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Detajet e pagesës</h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Mbyll"
+                    ></button>
+                </div>
+
+                <div class="modal-body" id="payment-details-content"></div>
+
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Mbyll
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
