@@ -47,12 +47,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Ngarkimi i porosive
-    document.getElementById('orders-content')
-        .addEventListener('click', handleOrderActions);
+document.getElementById('orders-content')
+    .addEventListener('click', handleOrderActions);
 
+// Filtri përdoret vetëm nga ADMIN dhe WAITER
+if (currentUser.role !== 'KITCHEN') {
     document.getElementById('status-filter')
         .addEventListener('change', loadOrders);
-
+} else {
+    document.getElementById('status-filter')
+        .classList.add('d-none');
+}
     document.getElementById('refresh-orders')
         .addEventListener('click', loadOrders);
 
@@ -381,22 +386,45 @@ async function loadOrders() {
     const content = document.getElementById('orders-content');
 
     loading.classList.remove('d-none');
-
     content.innerHTML = '';
 
     try {
 
-        const status = document.getElementById('status-filter').value;
+        // Pamja e veçantë për kuzhinierin
+        if (currentUser.role === 'KITCHEN') {
 
-        const path = status
-            ? `orders.php?status=${encodeURIComponent(status)}`
-            : 'orders.php';
+            const statuses = [
+                'NEW',
+                'IN_PREPARATION',
+                'READY',
+                'CANCELLED'
+            ];
 
-        const response = await api.get(path);
+            const responses = await Promise.all(
+                statuses.map(status =>
+                    api.get(`orders.php?status=${status}`)
+                )
+            );
 
-        orders = response.data;
+            orders = responses.flatMap(response => response.data);
 
-        renderOrders();
+            renderKitchenOrders();
+
+        } else {
+
+            // Pamja ekzistuese për ADMIN dhe WAITER
+            const status = document.getElementById('status-filter').value;
+
+            const path = status
+                ? `orders.php?status=${encodeURIComponent(status)}`
+                : 'orders.php';
+
+            const response = await api.get(path);
+
+            orders = response.data;
+
+            renderOrders();
+        }
 
     } catch (err) {
 
@@ -551,6 +579,151 @@ function renderOrders() {
             </div>
 
         `;
+
+    });
+
+    container.innerHTML = html;
+
+}
+
+
+
+// ======================================
+// PAMJA E POROSIVE PËR KUZHINIERIN
+// ======================================
+
+function renderKitchenOrders() {
+
+    const container = document.getElementById('orders-content');
+
+    const sections = [
+        {
+            status: 'NEW',
+            title: 'Porosi të reja',
+            description: 'Porositë që presin të fillojë përgatitja',
+            color: 'primary'
+        },
+        {
+            status: 'IN_PREPARATION',
+            title: 'Në përgatitje',
+            description: 'Porositë që janë duke u përgatitur',
+            color: 'warning'
+        },
+        {
+            status: 'READY',
+            title: 'Të gatshme',
+            description: 'Porositë e përfunduara dhe gati për shërbim',
+            color: 'success'
+        },
+        {
+            status: 'CANCELLED',
+            title: 'Të anuluara',
+            description: 'Porositë që janë anuluar',
+            color: 'danger'
+        }
+    ];
+
+    let html = '';
+
+    sections.forEach(section => {
+
+        const sectionOrders = orders.filter(
+            order => order.status === section.status
+        );
+
+        html += `
+            <div class="mb-5">
+
+                <div class="mb-3">
+                    <h2 class="h5 fw-bold">
+                        ${section.title}
+                        <span class="badge text-bg-${section.color}">
+                            ${sectionOrders.length}
+                        </span>
+                    </h2>
+
+                    <p class="text-muted small mb-0">
+                        ${section.description}
+                    </p>
+                </div>
+        `;
+
+        if (sectionOrders.length === 0) {
+
+            html += `
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body text-center text-muted py-4">
+                        Nuk ka porosi në këtë seksion.
+                    </div>
+                </div>
+            `;
+
+        } else {
+
+            sectionOrders.forEach(order => {
+
+                html += `
+                    <div class="card order-card shadow-sm mb-3">
+                        <div class="card-body">
+
+                            <div class="d-flex flex-wrap justify-content-between gap-3">
+
+                                <div>
+                                    <h3 class="h6 fw-bold">
+                                        Porosia #${Number(order.id)}
+                                    </h3>
+
+                                    <p class="mb-1">
+                                        <strong>Tavolina:</strong>
+                                        ${Number(order.table_number)}
+                                    </p>
+
+                                    <p class="text-muted small mb-1">
+                                        Kamarieri: ${escapeHtml(order.waiter)}
+                                    </p>
+
+                                    <p class="text-muted small mb-0">
+                                        ${escapeHtml(order.created_at)}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <span class="badge ${statusClass(order.status)}">
+                                        ${statusLabel(order.status)}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    data-action="details"
+                                    data-id="${Number(order.id)}"
+                                >
+                                    Shiko produktet
+                                </button>
+
+                                ${renderStatusButtons(order)}
+
+                            </div>
+
+                            <div
+                                id="order-details-${Number(order.id)}"
+                                class="order-details d-none mt-3"
+                            ></div>
+
+                        </div>
+                    </div>
+                `;
+
+            });
+
+        }
+
+        html += '</div>';
 
     });
 
