@@ -1,3 +1,4 @@
+
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../helpers.php';
@@ -9,6 +10,7 @@ $pdo    = getDB();
 switch ($method) {
     case 'GET':
         $user = requireLogin();
+
         if ($id > 0) {
             getOne($pdo, $id, $user);
         } else {
@@ -17,7 +19,7 @@ switch ($method) {
         break;
 
     case 'POST':
-        $user = requireRole('WAITER', 'ADMIN');   // kuzhinieri nuk krijon porosi
+        $user = requireRole('WAITER', 'ADMIN');
         createOrder($pdo, $user);
         break;
 
@@ -50,7 +52,9 @@ function findOrder(PDO $pdo, int $id): ?array
 {
     $stmt = $pdo->prepare(orderSelectSql() . ' WHERE o.id = ?');
     $stmt->execute([$id]);
+
     $row = $stmt->fetch();
+
     return $row ?: null;
 }
 
@@ -58,9 +62,12 @@ function getOrderItems(PDO $pdo, int $orderId): array
 {
     $stmt = $pdo->prepare(
         'SELECT oi.menu_item_id, m.name, oi.quantity, oi.unit_price
-         FROM order_items oi JOIN menu_items m ON m.id = oi.menu_item_id
-         WHERE oi.order_id = ? ORDER BY oi.id'
+         FROM order_items oi
+         JOIN menu_items m ON m.id = oi.menu_item_id
+         WHERE oi.order_id = ?
+         ORDER BY oi.id'
     );
+
     $stmt->execute([$orderId]);
 
     return array_map(fn($i) => [
@@ -82,9 +89,11 @@ function formatOrder(PDO $pdo, array $row, bool $withItems = false): array
         'total'        => (float) $row['total'],
         'created_at'   => $row['created_at'],
     ];
+
     if ($withItems) {
         $out['items'] = getOrderItems($pdo, (int) $row['id']);
     }
+
     return $out;
 }
 
@@ -95,44 +104,66 @@ function getAll(PDO $pdo, array $user): void
     $where  = [];
     $params = [];
 
-    // Kamarieri sheh vetëm porositë e veta; admini dhe kuzhina i shohin të gjitha
+   // Mos shfaq porositë e anuluara
+$where[] = "o.status != 'CANCELLED'";
+
+// Mos shfaq porositë që kanë pagesë të anuluar
+$where[] = "NOT EXISTS (
+    SELECT 1
+    FROM payments p
+    WHERE p.order_id = o.id
+    AND p.status = 'CANCELLED'
+)";
+    // Kamarieri sheh vetëm porositë e veta
     if ($user['role'] === 'WAITER') {
         $where[]  = 'o.waiter_id = ?';
         $params[] = $user['id'];
     }
 
-    // Filtër opsional: orders.php?status=NEW
+    // Filtër opsional sipas statusit
     if (isset($_GET['status'])) {
         if (!in_array($_GET['status'], orderStatuses(), true)) {
             sendError(400, 'VALIDATION_ERROR', 'Statusi nuk është i vlefshëm.');
         }
+
         $where[]  = 'o.status = ?';
         $params[] = $_GET['status'];
     }
 
     $sql = orderSelectSql();
-    if ($where) {
-        $sql .= ' WHERE ' . implode(' AND ', $where);
-    }
+    $sql .= ' WHERE ' . implode(' AND ', $where);
     $sql .= ' ORDER BY o.created_at DESC, o.id DESC';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 
-    $data = array_map(fn($row) => formatOrder($pdo, $row), $stmt->fetchAll());
-    sendJson(200, ['success' => true, 'data' => $data]);
+    $data = array_map(
+        fn($row) => formatOrder($pdo, $row),
+        $stmt->fetchAll()
+    );
+
+    sendJson(200, [
+        'success' => true,
+        'data' => $data
+    ]);
 }
 
 function getOne(PDO $pdo, int $id, array $user): void
 {
     $order = findOrder($pdo, $id);
+
     if (!$order) {
         sendError(404, 'ORDER_NOT_FOUND', 'Porosia nuk ekziston.');
     }
+
     if ($user['role'] === 'WAITER' && (int) $order['waiter_id'] !== $user['id']) {
         sendError(403, 'FORBIDDEN', 'Nuk ke të drejtë ta shohësh këtë porosi.');
     }
-    sendJson(200, ['success' => true, 'data' => formatOrder($pdo, $order, true)]);
+
+    sendJson(200, [
+        'success' => true,
+        'data' => formatOrder($pdo, $order, true)
+    ]);
 }
 
 // ---------------- Krijimi i porosisë ----------------
@@ -147,21 +178,33 @@ function createOrder(PDO $pdo, array $user): void
     if (!is_numeric($tableId) || (int) $tableId <= 0) {
         sendError(400, 'VALIDATION_ERROR', 'table_id është i detyrueshëm.');
     }
+
     if (!is_array($items) || count($items) === 0) {
         sendError(400, 'VALIDATION_ERROR', 'Porosia duhet të ketë të paktën një artikull.');
     }
 
-    // Bashko artikujt e përsëritur: [menu_item_id => sasia totale]
+    // Bashko artikujt e përsëritur
     $quantities = [];
+
     foreach ($items as $item) {
         $menuId = is_array($item) ? ($item['menu_item_id'] ?? null) : null;
         $qty    = is_array($item) ? ($item['quantity'] ?? null) : null;
 
-        if (!is_numeric($menuId) || (int) $menuId <= 0
-            || !is_numeric($qty) || (int) $qty != $qty || $qty < 1 || $qty > 100) {
-            sendError(400, 'VALIDATION_ERROR',
-                'Çdo artikull duhet të ketë menu_item_id dhe sasi nga 1 deri në 100.');
+        if (
+            !is_numeric($menuId) ||
+            (int) $menuId <= 0 ||
+            !is_numeric($qty) ||
+            (int) $qty != $qty ||
+            $qty < 1 ||
+            $qty > 100
+        ) {
+            sendError(
+                400,
+                'VALIDATION_ERROR',
+                'Çdo artikull duhet të ketë menu_item_id dhe sasi nga 1 deri në 100.'
+            );
         }
+
         $menuId = (int) $menuId;
         $quantities[$menuId] = ($quantities[$menuId] ?? 0) + (int) $qty;
     }
@@ -169,9 +212,11 @@ function createOrder(PDO $pdo, array $user): void
     try {
         $pdo->beginTransaction();
 
-        // 2. Tavolina duhet të ekzistojë dhe të jetë e lirë.
-        //    FOR UPDATE e bllokon rreshtin, që dy kamarierë të mos e marrin të njëjtën tavolinë.
-        $stmt = $pdo->prepare('SELECT status FROM restaurant_tables WHERE id = ? FOR UPDATE');
+        // 2. Kontrollo tavolinën
+        $stmt = $pdo->prepare(
+            'SELECT status FROM restaurant_tables WHERE id = ? FOR UPDATE'
+        );
+
         $stmt->execute([(int) $tableId]);
         $table = $stmt->fetch();
 
@@ -179,15 +224,21 @@ function createOrder(PDO $pdo, array $user): void
             $pdo->rollBack();
             sendError(404, 'TABLE_NOT_FOUND', 'Tavolina nuk ekziston.');
         }
+
         if ($table['status'] !== 'FREE') {
             $pdo->rollBack();
             sendError(409, 'TABLE_NOT_FREE', 'Tavolina është e zënë.');
         }
 
-        // 3. Kontrollo çdo artikull dhe llogarit totalin
+        // 3. Kontrollo artikujt dhe llogarit totalin
         $total = 0;
         $rows  = [];
-        $stmt  = $pdo->prepare('SELECT id, name, price, is_available FROM menu_items WHERE id = ?');
+
+        $stmt = $pdo->prepare(
+            'SELECT id, name, price, is_available
+             FROM menu_items
+             WHERE id = ?'
+        );
 
         foreach ($quantities as $menuId => $qty) {
             $stmt->execute([$menuId]);
@@ -195,71 +246,98 @@ function createOrder(PDO $pdo, array $user): void
 
             if (!$menu) {
                 $pdo->rollBack();
-                sendError(404, 'MENU_ITEM_NOT_FOUND', "Artikulli me ID $menuId nuk ekziston.");
+                sendError(
+                    404,
+                    'MENU_ITEM_NOT_FOUND',
+                    "Artikulli me ID $menuId nuk ekziston."
+                );
             }
+
             if (!$menu['is_available']) {
                 $pdo->rollBack();
-                sendError(409, 'MENU_ITEM_UNAVAILABLE',
-                    'Artikulli "' . $menu['name'] . '" nuk është i disponueshëm.');
+                sendError(
+                    409,
+                    'MENU_ITEM_UNAVAILABLE',
+                    'Artikulli "' . $menu['name'] . '" nuk është i disponueshëm.'
+                );
             }
+
             $rows[] = [$menuId, $qty, $menu['price']];
             $total += $qty * $menu['price'];
         }
+
         $total = round($total, 2);
 
-        // 4. Ruaj porosinë dhe artikujt e saj
-        $stmt = $pdo->prepare('INSERT INTO orders (table_id, waiter_id, total) VALUES (?, ?, ?)');
+        // 4. Ruaj porosinë
+        $stmt = $pdo->prepare(
+            'INSERT INTO orders (table_id, waiter_id, total)
+             VALUES (?, ?, ?)'
+        );
+
         $stmt->execute([(int) $tableId, $user['id'], $total]);
+
         $orderId = (int) $pdo->lastInsertId();
 
+        // 5. Ruaj artikujt e porosisë
         $stmt = $pdo->prepare(
-            'INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES (?, ?, ?, ?)'
+            'INSERT INTO order_items
+             (order_id, menu_item_id, quantity, unit_price)
+             VALUES (?, ?, ?, ?)'
         );
+
         foreach ($rows as [$menuId, $qty, $price]) {
-            $stmt->execute([$orderId, $menuId, $qty, $price]);   // çmimi ruhet te porosia
+            $stmt->execute([$orderId, $menuId, $qty, $price]);
         }
 
-        // 5. Tavolina bëhet e zënë
-        $pdo->prepare("UPDATE restaurant_tables SET status = 'OCCUPIED' WHERE id = ?")
-            ->execute([(int) $tableId]);
+        // 6. Tavolina bëhet e zënë
+        $pdo->prepare(
+            "UPDATE restaurant_tables
+             SET status = 'OCCUPIED'
+             WHERE id = ?"
+        )->execute([(int) $tableId]);
 
-        $pdo->commit();   // vetëm tani ruhet gjithçka
+        $pdo->commit();
+
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+
         error_log($e->getMessage());
+
         sendError(500, 'SERVER_ERROR', 'Ndodhi një gabim në server.');
     }
 
     sendJson(201, [
         'success' => true,
         'message' => 'Porosia u krijua.',
-        'data'    => formatOrder($pdo, findOrder($pdo, $orderId), true),
+        'data' => formatOrder($pdo, findOrder($pdo, $orderId), true)
     ]);
 }
 
 // ---------------- Ndryshimi i statusit ----------------
 
-// Cilat ndryshime statusi lejohen për secilin rol
 function allowedTransition(string $role, string $from, string $to): bool
 {
     $rules = [
         'KITCHEN' => [
-            'NEW'            => ['IN_PREPARATION'],
+            'NEW' => ['IN_PREPARATION'],
             'IN_PREPARATION' => ['READY'],
         ],
+
         'WAITER' => [
-            'NEW'   => ['CANCELLED'],
+            'NEW' => ['CANCELLED'],
             'READY' => ['SERVED'],
         ],
+
         'ADMIN' => [
-            'NEW'            => ['IN_PREPARATION', 'CANCELLED'],
+            'NEW' => ['IN_PREPARATION', 'CANCELLED'],
             'IN_PREPARATION' => ['READY', 'CANCELLED'],
-            'READY'          => ['SERVED', 'CANCELLED'],
-            'SERVED'         => ['CANCELLED'],
+            'READY' => ['SERVED', 'CANCELLED'],
+            'SERVED' => ['CANCELLED'],
         ],
     ];
+
     return in_array($to, $rules[$role][$from] ?? [], true);
 }
 
@@ -270,13 +348,18 @@ function updateStatus(PDO $pdo, int $id, array $user): void
     }
 
     $order = findOrder($pdo, $id);
+
     if (!$order) {
         sendError(404, 'ORDER_NOT_FOUND', 'Porosia nuk ekziston.');
     }
 
     // Kamarieri mund t'i ndryshojë vetëm porositë e veta
     if ($user['role'] === 'WAITER' && (int) $order['waiter_id'] !== $user['id']) {
-        sendError(403, 'FORBIDDEN', 'Nuk mund t\'i ndryshosh porositë e një kamarieri tjetër.');
+        sendError(
+            403,
+            'FORBIDDEN',
+            'Nuk mund t\'i ndryshosh porositë e një kamarieri tjetër.'
+        );
     }
 
     $input = getJsonInput();
@@ -286,37 +369,62 @@ function updateStatus(PDO $pdo, int $id, array $user): void
     if (!in_array($to, orderStatuses(), true)) {
         sendError(400, 'VALIDATION_ERROR', 'Statusi nuk është i vlefshëm.');
     }
+
     if ($to === 'PAID') {
-        sendError(400, 'VALIDATION_ERROR', 'Statusi PAID vendoset vetëm përmes pagesës.');
+        sendError(
+            400,
+            'VALIDATION_ERROR',
+            'Statusi PAID vendoset vetëm përmes pagesës.'
+        );
     }
+
     if (in_array($from, ['PAID', 'CANCELLED'], true)) {
-        sendError(409, 'ORDER_CLOSED', 'Porosia është e mbyllur dhe nuk mund të ndryshohet.');
+        sendError(
+            409,
+            'ORDER_CLOSED',
+            'Porosia është e mbyllur dhe nuk mund të ndryshohet.'
+        );
     }
+
     if (!allowedTransition($user['role'], $from, $to)) {
-        sendError(403, 'FORBIDDEN', "Roli yt nuk mund ta kalojë porosinë nga $from në $to.");
+        sendError(
+            403,
+            'FORBIDDEN',
+            "Roli yt nuk mund ta kalojë porosinë nga $from në $to."
+        );
     }
 
     try {
         $pdo->beginTransaction();
-        $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$to, $id]);
+
+        $pdo->prepare(
+            'UPDATE orders SET status = ? WHERE id = ?'
+        )->execute([$to, $id]);
 
         // Nëse porosia anulohet, tavolina lirohet
         if ($to === 'CANCELLED') {
-            $pdo->prepare("UPDATE restaurant_tables SET status = 'FREE' WHERE id = ?")
-                ->execute([(int) $order['table_id']]);
+            $pdo->prepare(
+                "UPDATE restaurant_tables
+                 SET status = 'FREE'
+                 WHERE id = ?"
+            )->execute([(int) $order['table_id']]);
         }
+
         $pdo->commit();
+
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+
         error_log($e->getMessage());
+
         sendError(500, 'SERVER_ERROR', 'Ndodhi një gabim në server.');
     }
 
     sendJson(200, [
         'success' => true,
         'message' => 'Statusi u ndryshua.',
-        'data'    => formatOrder($pdo, findOrder($pdo, $id)),
+        'data' => formatOrder($pdo, findOrder($pdo, $id))
     ]);
 }
